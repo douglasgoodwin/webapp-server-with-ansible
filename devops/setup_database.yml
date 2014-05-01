@@ -1,17 +1,18 @@
 ---
 
-- hosts: garnish
-  user: tom
+- hosts: mullen_production
+  user: ubuntu
   sudo: yes
-  sudo_user: postgres
 
   tasks:
-    - name: create a test database user
-      action: postgresql_user user=testuser password=test1ng
+    - name: 3. Create a new database
+      mysql_db: name=test_ansible_db state=present collation=utf8_general_ci
 
-    - name: create test database
-      action: postgresql_db name=test_ansible_db owner=testuser
+
+    - name: 4. Create a database user
+      mysql_user: name=testuser password=test1ng priv=*.*:ALL host=localhost state=present
+
 
   handlers:
-    - name: restart postgresql
-      action: service name=postgresql state=restarted
+    - name: restart mariadb
+      action: service name=mysql state=restarted
