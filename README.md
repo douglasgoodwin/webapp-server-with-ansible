@@ -2,6 +2,8 @@
 
 **NB This is a work in progress. Use at your own risk.**
 
+## updated for use with MariaDB [drg]
+
 The setup here has not been tested. Please don't base your production server on this code without testing and checking security. Additions and pull requests for enhancements gratefully received!
 
 ## Aim
@@ -12,8 +14,7 @@ Provision an Ubuntu 12.04 64bit Server for serving web applications with the fol
 - Flask
 - uWSGI
 - NGINX
-- Postgresql
-- Node (to be completed)
+- MariaDB
 
 The scripts should work with small modifications on other version of Ubuntu and Debian.
 
