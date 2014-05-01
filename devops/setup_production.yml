@@ -39,6 +39,7 @@
         - git-core
         - nginx
         - python-dev
+        - libmariadbclient-dev
 
 
 
