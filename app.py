@@ -4,7 +4,7 @@ from flask.ext.sqlalchemy import SQLAlchemy
 app = Flask(__name__)
 app.config['DEBUG'] = True
 app.config['SQLALCHEMY_DATABASE_URI'] = \
-    'postgres://testuser:test1ng@localhost/test_ansible_db'
+    'mysql://testuser:test1ng@localhost/test_ansible_db'
 
 db = SQLAlchemy(app)
 
