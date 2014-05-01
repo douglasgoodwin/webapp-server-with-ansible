@@ -18,12 +18,6 @@
         - python2.7
         - software-properties-common
 
-    - name: add MariaDB ppas
-      action: apt_repository repo=$item state=present
-      with_items:
-        - ppa:mariadb-server
-
-
     - name: add nginx ppas
       action: apt_repository repo=$item state=present
       with_items:
@@ -47,6 +41,7 @@
         - nginx
         - python-dev
         - libmariadbclient-dev
+        - libmariadbd-dev
 
 
 
@@ -56,14 +51,18 @@
     - name: 1b. Add APT repository
       apt_repository: repo='deb http://ftp.osuosl.org/pub/mariadb/repo/10.0/ubuntu $ansible_distribution_release main' state=present update_cache=yes
 
-    - name: 1c. Install MariaDB server package
-      apt: name=mariadb-server state=present
+    - name: 1c. add MariaDB ppas
+      action: apt_repository repo=$item state=present
+      with_items:
+        - ppa:mariadb-server
 
     - name: 2. Start Mysql Service
       service: name=mysql state=started enabled=true
 
     - name: Install python Mysql package #required for mysql_db tasks
       apt: name=python-mysqldb state=present
+
+
 
 
 
