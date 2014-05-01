@@ -14,8 +14,7 @@ Provision an Ubuntu 12.04 64bit Server for serving web applications with the fol
 - Flask
 - uWSGI
 - NGINX
-- Postgresql
-- Node (to be completed)
+- MariaDB
 
 The scripts should work with small modifications on other version of Ubuntu and Debian.
 
