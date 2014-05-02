@@ -54,7 +54,7 @@
     - name: 1c. add MariaDB ppas
       action: apt_repository repo=$item state=present
       with_items:
-        - ppa:mariadb-server
+        - ppa:mariadb-server/stable
 
     - name: 2. Start Mysql Service
       service: name=mysql state=started enabled=true
