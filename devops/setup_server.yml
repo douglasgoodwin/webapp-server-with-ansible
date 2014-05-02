@@ -4,6 +4,15 @@
   user: ubuntu
   sudo: yes
 
+  vars:
+    app_name: hello_flask
+    repo_url: https://github.com/mattupstate/ansible-tutorial.git
+    repo_remote: origin
+    repo_version: master
+    webapps_dir: /srv/webapps
+    wsgi_file: wsgi.py
+    wsgi_callable: app
+
   tasks:
 
     - name: install initial packages
@@ -84,11 +93,14 @@
     - name: symlink imaging library files
       action: file src=/usr/lib/x86_64-linux-gnu/libjpeg.so dest=/usr/lib/libjpeg.so state=link
 
-    - name: remove default nginx site
-      action: file path=/etc/nginx/sites-enabled/default state=absent
 
-    - name: write nginx.conf
-      action: template src=templates/nginx.conf dest=/etc/nginx/nginx.conf
+    - name: create nginx site config
+      action: template src=templates/nginx_site.conf dest=/etc/nginx/sites-available/${app_name}.conf
+      notify:
+        - restart nginx
+
+    - name: link nginx config
+      action: file src=/etc/nginx/sites-available/${app_name}.conf dest=/etc/nginx/sites-enabled/${app_name}.conf state=link
 
     - name: create supervisord config folder
       action: file dest=/etc/supervisor state=directory owner=root
@@ -101,6 +113,7 @@
 
     - name: start supervisord service and have it run during system startup
       action: service name=supervisord state=started enabled=yes
+
 
     - name: create webapps directory
       action: file dest=/srv/webapps state=directory
