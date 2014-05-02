@@ -19,36 +19,34 @@
         - software-properties-common
 
     - name: add nginx ppas
-      action: apt_repository repo=$item state=present
-      with_items:
-        - ppa:nginx/stable
+      action: apt_repository repo=ppa:nginx/stable state=present
 
     - name: install main packages for python node nginx
       action: apt pkg=$item state=installed
       with_items:
-        - libxml2-dev
-        - libjpeg62
-        - libjpeg62-dev
+        - git-core
+        - libcurl4-openssl-dev
         - libfreetype6
         - libfreetype6-dev
-        - zlib1g-dev
-        - mysql-client
-        - python-dev
-        - python-setuptools
-        - python-imaging
-        - python-mysqldb
-        - git-core
-        - nginx
-        - python-dev
+        - libjpeg62
+        - libjpeg62-dev
         - libmariadbclient-dev
         - libmariadbd-dev
-        - python-pip
-        - libcurl4-openssl-dev
+        - libxml2-dev
+        - mysql-client
+        - nginx
+        - python-dev
+        - python-imaging
+        - python-mysqldb
         - python-pycurl
-        - redis-server
         - python-redis
+        - python-setuptools
+        - redis-server
+        - zlib1g-dev
 
-  
+    - name: install pip
+      action: easy_install name=pip
+
     - name: 1a. Add APT GPG signing key
       apt_key: url=http://keyserver.ubuntu.com/pks/lookup?op=get&search=0xCBCB082A1BB943DB state=present
 
@@ -63,10 +61,6 @@
 
     - name: Install python Mysql package #required for mysql_db tasks
       apt: name=python-mysqldb state=present
-
-
-
-
 
     - name: install pip
       action: easy_install name=pip
