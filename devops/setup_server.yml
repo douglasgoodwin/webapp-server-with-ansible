@@ -52,6 +52,9 @@
         - python-setuptools
         - redis-server
         - zlib1g-dev
+        - libxml2
+        - libxml2-dev
+        - python-libxml2
 
     - name: 3a. Add APT GPG signing key
       apt_key: url=http://keyserver.ubuntu.com/pks/lookup?op=get&search=0xCBCB082A1BB943DB state=present

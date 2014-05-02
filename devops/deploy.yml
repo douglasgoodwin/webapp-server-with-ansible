@@ -2,46 +2,47 @@
 
 - hosts: mullen_production
   user: ubuntu
-  sudo: yes
+  sudo: true
 
   vars:
-    app_name: mullen
-    repo_url: http://git.lbox.com/douglas.goodwin/mullen.git
+    app_name: rodney
+    repo_url: git@git.lbox.com:douglas.goodwin/mullen.git accept_hostkey=true
     repo_remote: origin
-    repo_version: master
+    repo_version: production
     webapps_dir: /var/www/envs
     wsgi_file: wsgi.py
     wsgi_callable: app
+    accept_hostkey: true
 
   tasks:
     - name: ensure log directory
-      action: file dest={{webapps_dir}}/${app_name}/log state=directory
+      action: file dest={{webapps_dir}}/mullen/${app_name}/log state=directory
 
-    - name: deploy code from repository
-      action: git repo=$repo_url dest=${webapps_dir}/${app_name}/src remote=$repo_remote version=$repo_version
+    # - name: deploy code from repository
+    #   action: git repo=$repo_url dest={{webapps_dir}} remote=$repo_remote version=$repo_version
 
     - name: install dependencies into virtualenv
-      action: pip requirements=${webapps_dir}/${app_name}/rodney/requirements.txt virtualenv=${webapps_dir}/${app_name}/venv state=present
+      action: pip requirements={{webapps_dir}}/mullen/{{app_name}}/requirements.txt virtualenv={{webapps_dir}}/mullen/{{app_name}} state=present
 
     - name: create supervisor program config
-      action: template src=templates/supervisor.ini dest=/etc/supervisor/${app_name}.ini
+      action: template src=templates/supervisor.ini dest=/etc/supervisor/{{app_name}}.ini
       notify:
         - restart app
 
     - name: create nginx site config
-      action: template src=templates/nginx_site.conf dest=/etc/nginx/sites-available/${app_name}.conf
+      action: template src=templates/nginx_site.conf dest=/etc/nginx/sites-available/{{app_name}}.conf
       notify:
         - restart nginx
 
     - name: link nginx config
-      action: file src=/etc/nginx/sites-available/${app_name}.conf dest=/etc/nginx/sites-enabled/${app_name}.conf state=link
+      action: file src=/etc/nginx/sites-available/{{app_name}}.conf dest=/etc/nginx/sites-enabled/{{app_name}}.conf state=link
 
     - name: start app
-      action: supervisorctl name=${app_name} state=started
+      action: supervisorctl name={{app_name}} state=started
 
   handlers:
     - name: restart app
-      action: supervisorctl name=${app_name} state=restarted
+      action: supervisorctl name={{app_name}} state=restarted
 
     - name: restart nginx
       action: service name=nginx state=restarted

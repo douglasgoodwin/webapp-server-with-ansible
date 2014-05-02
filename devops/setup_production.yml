@@ -17,6 +17,7 @@
         - ufw
         - python2.7
         - software-properties-common
+        - python-pil
 
     - name: add nginx ppas
       action: apt_repository repo=$item state=present
@@ -73,6 +74,9 @@
         - virtualenv
         - supervisor
         - uwsgi
+
+    - name: symlink imaging library files
+      action: file src=/usr/include/freetype2 dest=/usr/include/freetype state=link
 
     - name: symlink imaging library files
       action: file src=/usr/lib/x86_64-linux-gnu/libfreetype.so dest=/usr/lib/libfreetype.so state=link
