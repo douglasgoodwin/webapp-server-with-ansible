@@ -1,6 +1,6 @@
 ---
 
-- hosts: mullen_production
+- hosts: mullen_dev
   user: ubuntu
   sudo: yes
 
@@ -63,10 +63,6 @@
 
     - name: Install python Mysql package #required for mysql_db tasks
       apt: name=python-mysqldb state=present
-
-
-
-
 
     - name: install pip
       action: easy_install name=pip
