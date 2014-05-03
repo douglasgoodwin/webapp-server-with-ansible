@@ -4,18 +4,9 @@
   user: ubuntu
   sudo: yes
 
-  vars:
-    app_name: hello_flask
-    repo_url: https://github.com/douglasgoodwin/ansible-tutorial.git
-    repo_remote: origin
-    repo_version: master
-    webapps_dir: /srv/webapps
-    wsgi_file: wsgi.py
-    wsgi_callable: app
-
-
   tasks:
-    - name: 1. install initial packages
+
+    - name: install initial packages
       action: apt pkg=$item state=installed
       with_items:
         - build-essential
@@ -26,11 +17,18 @@
         - ufw
         - python2.7
         - software-properties-common
+        - python-pil
+        - cython
+        - python-lxml
+        - libxml2-dev
+        - libxslt1-dev
 
-    - name: 2. add nginx ppas
-      action: apt_repository repo=ppa:nginx/stable state=present
+    - name: add nginx ppas
+      action: apt_repository repo=$item state=present
+      with_items:
+        - ppa:nginx/stable
 
-    - name: install main packages for python node nginx
+    - name: install main packages for python nginx
       action: apt pkg=$item state=installed
       with_items:
         - git-core
@@ -41,87 +39,83 @@
         - libjpeg62-dev
         - libmariadbclient-dev
         - libmariadbd-dev
-        - libxml2-dev
         - mysql-client
         - nginx
         - python-dev
         - python-imaging
         - python-mysqldb
+        - python-pip
         - python-pycurl
         - python-redis
         - python-setuptools
         - redis-server
         - zlib1g-dev
 
-    - name: 3a. Add APT GPG signing key
+
+  
+    - name: 1a. Add APT GPG signing key
       apt_key: url=http://keyserver.ubuntu.com/pks/lookup?op=get&search=0xCBCB082A1BB943DB state=present
 
-    - name: 3b. Add APT repository
+    - name: 1b. Add APT repository
       apt_repository: repo='deb http://ftp.osuosl.org/pub/mariadb/repo/10.0/ubuntu $ansible_distribution_release main' state=present update_cache=yes
       
-    - name: 3c. Install MariaDB server package
+    - name: 1c. Install MariaDB server package
       apt: name=mariadb-server state=present
 
-    - name: 3d. Start Mysql Service
+    - name: 2. Start Mysql Service
       service: name=mysql state=started enabled=true
 
-    - name: 3e. Install python Mysql package #required for mysql_db tasks
+    - name: Install python Mysql package #required for mysql_db tasks
       apt: name=python-mysqldb state=present
 
-    - name: 4. install pip
+    - name: install pip
       action: easy_install name=pip
 
-    - name: 5. install various libraries with pip
+    - name: install various libraries with pip
       action: pip name=$item state=present
       with_items:
         - virtualenv
         - supervisor
         - uwsgi
 
-    - name: 6a. symlink imaging library files
+    - name: symlink imaging library files
+      action: file src=/usr/include/freetype2 dest=/usr/include/freetype state=link
+
+    - name: symlink imaging library files
       action: file src=/usr/lib/x86_64-linux-gnu/libfreetype.so dest=/usr/lib/libfreetype.so state=link
 
-    - name: 6b. symlink imaging library files
+    - name: symlink imaging library files
       action: file src=/usr/lib/x86_64-linux-gnu/libz.so dest=/usr/lib/libz.so state=link
 
-    - name: 6c. symlink imaging library files
+    - name: symlink imaging library files
       action: file src=/usr/lib/x86_64-linux-gnu/libjpeg.so.62 dest=/usr/lib/x86_64-linux-gnu/libjpeg.so state=link
 
-    - name: 6d. symlink imaging library files
+    - name: symlink imaging library files
       action: file src=/usr/lib/x86_64-linux-gnu/libjpeg.so dest=/usr/lib/libjpeg.so state=link
 
-    - name: 7a. create nginx site config
-      action: template src=templates/nginx_site.conf dest=/etc/nginx/sites-available/{{app_name}}.conf
-      notify: restart nginx
+    - name: remove default nginx site
+      action: file path=/etc/nginx/sites-enabled/default state=absent
 
-    - name: 7b. link nginx config
-      action: file src=/etc/nginx/sites-available/{{app_name}}.conf dest=/etc/nginx/sites-enabled/{{app_name}}.conf state=link
+    - name: write nginx.conf
+      action: template src=templates/nginx.conf dest=/etc/nginx/nginx.conf
 
-    - name: 8a. create supervisord config folder
+    - name: create supervisord config folder
       action: file dest=/etc/supervisor state=directory owner=root
 
-    - name: 8b. create supervisord config
+    - name: create supervisord config
       action: template src=templates/supervisord.conf dest=/etc/supervisord.conf
 
-    - name: 8c. create supervisord init script
+    - name: create supervisord init script
       action: template src=templates/supervisord.sh dest=/etc/init.d/supervisord mode=0755
 
-    - name: 8d. start supervisord service and have it run during system startup
+    - name: start supervisord service and have it run during system startup
       action: service name=supervisord state=started enabled=yes
 
-    - name: 9. create webapps directory
+    - name: create webapps directory
       action: file dest=/srv/webapps state=directory
 
-    - name: 9. start Flask app {{app_name}}
-      action: supervisorctl name={{app_name}} state=started
 
   handlers:
-    - name: restart Flask app {{app_name}}
-      action: service name={{app_name}} state=restarted
-
-    - name: restart nginx
-      action: service name=nginx state=restarted
-
     - name: restart maria
       action: service name=mysql state=restarted
 

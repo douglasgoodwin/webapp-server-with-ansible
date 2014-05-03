@@ -30,7 +30,7 @@
     - name: 2. add nginx ppas
       action: apt_repository repo=ppa:nginx/stable state=present
 
-    - name: install main packages for python node nginx
+    - name: install main packages for python nginx
       action: apt pkg=$item state=installed
       with_items:
         - git-core
@@ -55,6 +55,8 @@
         - libxml2
         - libxml2-dev
         - python-libxml2
+        - python-lxml
+        - libxslt-dev
 
     - name: 3a. Add APT GPG signing key
       apt_key: url=http://keyserver.ubuntu.com/pks/lookup?op=get&search=0xCBCB082A1BB943DB state=present

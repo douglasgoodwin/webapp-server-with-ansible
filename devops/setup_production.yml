@@ -6,6 +6,9 @@
 
   tasks:
 
+    - name: update apt
+      apt: update_cache=yes
+
     - name: install initial packages
       action: apt pkg=$item state=installed
       with_items:
@@ -18,36 +21,43 @@
         - python2.7
         - software-properties-common
         - python-pil
+        - cython
+        - python-lxml
+        - libxml2-dev
+        - libxslt1-dev
+        - openssh-client
+        - make
+        - build-essential
+        - tcl8.5
 
     - name: add nginx ppas
       action: apt_repository repo=$item state=present
       with_items:
         - ppa:nginx/stable
 
-    - name: install main packages for python node nginx
+    - name: install main packages for python nginx
       action: apt pkg=$item state=installed
       with_items:
-        - libxml2-dev
-        - libjpeg62
-        - libjpeg62-dev
+        - git-core
+        - libcurl4-openssl-dev
         - libfreetype6
         - libfreetype6-dev
-        - zlib1g-dev
-        - mysql-client
-        - python-dev
-        - python-setuptools
-        - python-imaging
-        - python-mysqldb
-        - git-core
-        - nginx
-        - python-dev
+        - libjpeg62
+        - libjpeg62-dev
         - libmariadbclient-dev
         - libmariadbd-dev
+        - mysql-client
+        - nginx
+        - python-dev
+        - python-imaging
+        - python-mysqldb
         - python-pip
-        - libcurl4-openssl-dev
         - python-pycurl
-        - redis-server
         - python-redis
+        - python-setuptools
+        - redis-server
+        - zlib1g-dev
+
 
   
     - name: 1a. Add APT GPG signing key
@@ -112,9 +122,75 @@
       action: file dest=/srv/webapps state=directory
 
 
+     # redis
+    - name: download latest stable redis
+      get_url: url=http://download.redis.io/redis-stable.tar.gz dest=/tmp/redis-stable.tar.gz
+
+    - name: untar redis
+      command: tar zxf /tmp/redis-stable.tar.gz -C /tmp
+
+    - name: build redis
+      command: make -C /tmp/redis-stable
+
+    - name: create redis group
+      group: name=redis state=present system=yes
+
+    - name: create redis user
+      user: name=redis group=redis createhome=no shell=/bin/false system=yes state=present
+
+    - name: make sure that /etc/redis exists
+      file: path=/etc/redis state=directory mode=0755
+
+    - name: make sure that /var/db/redis exists
+      file: path=/var/db/redis state=directory mode=0755 group=redis owner=redis
+
+    - name: make sure redis.log file exists
+      copy: src=templates/redis.log dest=/var/log/redis.log owner=redis group=redis mode=0644
+
+    - name: copy upstart file
+      copy: src=templates/upstart.conf dest=/etc/init/redis.conf
+
+    - name: copy redis.conf file
+      copy: src=templates/redis.conf dest=/etc/redis/redis.conf group=redis owner=redis
+
+    - name: copy custom template
+      template: src=templates/redis.local.conf.j2 dest=/etc/redis/redis.local.conf group=redis owner=redis
+
+    - name: copy redis-local script
+      template: src=templates/redis-local.j2 dest=/usr/local/bin/redis-local mode=0755
+
+    - name: installing redis binaries
+      command: cp /tmp/redis-stable/src/{{ item }} /usr/local/bin
+      with_items: 
+        - redis-server
+        - redis-cli
+        - redis-check-aof
+        - redis-check-dump
+
+    - name: cleaning up build files
+      command: rm -rf /tmp/{{ item }}
+      with_items:
+        - redis-stable
+        - redis-stable.tar.gz
+
+    - name: ensure redis service is restarted
+      service: name=redis state=restarted
+
+
+
+
+
+
+
+
+
+
+
+
+
   handlers:
-    - name: restart maria
-      action: service name=mysql state=restarted
+    # - name: restart maria
+    #   action: service name=mysql state=restarted
 
     - name: restart supervisord
       action: service name=supervisord state=restarted
